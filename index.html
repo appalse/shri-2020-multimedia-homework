@@ -5,20 +5,97 @@
     <title>Test streams</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script src="initVideo.js"></script>
+    <script src="clickHandler.js"></script>
     <style>
+        body { margin: 0;}
+        .container {
+            margin-top: 30px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            align-items: center;
+            justify-items: center;
+        }
+        @media (max-width: 650px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
         .video {
             width: 300px;
             height: 200px;
+            transition: all 1s linear;
+        }
+        .video:focus {
+            outline: none;
+        }
+        input[type=checkbox] {
+            display: none;
+        }
+        input[type=checkbox]:checked ~ .video {
+            width: 95vw;
+            height: calc(95vh - 30px);
+        }
+        .video-controls {
+            display: none;
+            grid-template-columns: max-content 1fr 1fr 1fr;
+            align-items: center;
+            justify-items: center;
+            padding-left: 5px;
+            padding-right: 5px;
+        }
+        .video-controls-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #volume-plot {
+            margin-right: 10px;
+            margin-top: 5px;
+            width: 100px;
+            height: 20px;
+            background: linear-gradient(90deg, lightblue 0%, white 0%);
+            border: 2px solid grey;
         }
     </style>
 </head>
 <body>
+    <div class="video-controls">
+        <button id="closeButton">Все камеры</button>
+        <div class="video-controls-item">
+            <input type="range" id="brightness" name="brightness" min="0" max="200" step="20" oninput="applyBrightness(this.value)" onchange="applyBrightness(this.value)">
+            <label for="brightness">Яркость</label>
+        </div>
+        <div class="video-controls-item">  
+            <input type="range" id="contrast" name="contrast" min="0" max="200" step="20" oninput="applyContrast(this.value)" onchange="applyContrast(this.value)">
+            <label for="contrast">Контраст</label>
+        </div>
+        <div class="video-controls-item">
+            <div id="volume-plot"></div>
+            <label for="volume-plot">Громкость</label>
+        </div>
+    </div>
+    <main class="container" id="container">
+        <div class="video-box">
+            <input type="checkbox" id="zoomCheck-1" name="zoomCheck" />
+            <video id="video-1" class="video" controls muted autoplay></video>
+        </div>
 
-<video id="video-1" class="video" controls muted autoplay></video>
-<video id="video-2" class="video" controls muted autoplay></video>
-<br>
-<video id="video-3" class="video" controls muted autoplay></video>
-<video id="video-4" class="video" controls muted autoplay></video>
+        <div class="video-box">
+            <input type="checkbox" id="zoomCheck-2" name="zoomCheck" />
+            <video id="video-2" class="video" controls muted autoplay></video>
+        </div>
+
+        <div class="video-box">
+            <input type="checkbox" id="zoomCheck-3" name="zoomCheck" />
+            <video id="video-3" class="video" controls muted autoplay></video>
+        </div>
+
+        <div class="video-box">
+            <input type="checkbox" id="zoomCheck-4" name="zoomCheck" />
+            <video id="video-4" class="video" controls muted autoplay></video>
+        </div>
+    </main>
 <script>
     initVideo(
         document.getElementById('video-1'),
@@ -39,6 +116,26 @@
         document.getElementById('video-4'),
         'http://localhost:9191/live?url=http%3A%2F%2Flocalhost%3A3102%2Fstreams%2Fstreet%2Fmaster.m3u8'
     );
+
+    videoClickHandler(document.getElementById('video-1'), document.getElementById('zoomCheck-1'));
+    videoClickHandler(document.getElementById('video-2'), document.getElementById('zoomCheck-2'));
+    videoClickHandler(document.getElementById('video-3'), document.getElementById('zoomCheck-3'));
+    videoClickHandler(document.getElementById('video-4'), document.getElementById('zoomCheck-4'));
+
+    clickAllCamerasButton(document.getElementById('closeButton'));
+    
+    function volumeChange(elementId) {
+        const vid = document.getElementById(elementId);
+        vid.onvolumechange = function() {
+            const plot = document.getElementById('volume-plot');
+            const volume = vid.volume * 100;
+            plot.style.background = 'linear-gradient(90deg, lightblue ' + volume + '%, white ' + volume + '%)';
+        };
+    };
+    volumeChange("video-1");
+    volumeChange("video-2");
+    volumeChange("video-3");
+    volumeChange("video-4");
 
 </script>
 
