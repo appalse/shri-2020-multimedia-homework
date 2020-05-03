@@ -1,21 +1,30 @@
+function processVideoClick(inputElement) {
+    let inputs = Array.from(document.getElementsByName('zoomCheck'));
+    for (input of inputs) {
+        if (input === inputElement) {
+            input.checked = true;
+        } else {
+            input.checked = false;
+            input.parentNode.style.display = 'none';
+        }
+    }
+    document.getElementById('closeButton').parentNode.style.display = 'grid';
+    document.getElementById('brightness').value = "100";
+    document.getElementById('contrast').value = "100";
+    const container = document.getElementById('container');
+    container.style.gridTemplateColumns = '1fr';
+    container.style.gridTemplateRows = '1fr';
+    document.getElementById('volume-plot').style.background = 'linear-gradient(90deg, lightblue 0%, white 0%)';
+}
+
 function videoClickHandler(videoElement, inputElement) {
     videoElement.addEventListener('click', function() {
-        let inputs = Array.from(document.getElementsByName('zoomCheck'));
-        for (input of inputs) {
-            if (input === inputElement) {
-                input.checked = true;
-            } else {
-                input.checked = false;
-                input.parentNode.style.display = 'none';
-            }
-        }
-        document.getElementById('closeButton').parentNode.style.display = 'grid';
-        document.getElementById('brightness').value = "100";
-        document.getElementById('contrast').value = "100";
-        const container = document.getElementById('container');
-        container.style.gridTemplateColumns = '1fr';
-        container.style.gridTemplateRows = '1fr';
-        document.getElementById('volume-plot').style.background = 'linear-gradient(90deg, lightblue 0%, white 0%)';
+        alert('You clicked video');
+        processVideoClick(inputElement);
+    });
+    videoElement.addEventListener('touchstart', function() {
+        alert('You touched video');
+        processVideoClick(inputElement);
     });
 }
 
@@ -52,7 +61,6 @@ function clickAllCamerasButton(btnElement) {
             input.parentNode.style.display = 'block';
             resetFilterProperties(input);
         }
-        btnElement.parentNode.style.display = 'none';
         const container = document.getElementById('container');
         container.style.gridTemplateColumns = '1fr 1fr';
         container.style.gridTemplateRows = '1fr 1fr';

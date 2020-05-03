@@ -7,7 +7,7 @@
     <script src="initVideo.js"></script>
     <script src="clickHandler.js"></script>
     <style>
-        body { margin: 0;}
+        body { margin: 0; }
         .container {
             margin-top: 30px;
             display: grid;
@@ -37,7 +37,7 @@
             height: calc(95vh - 30px);
         }
         .video-controls {
-            display: none;
+            display: grid;
             grid-template-columns: max-content 1fr 1fr 1fr;
             align-items: center;
             justify-items: center;
@@ -99,22 +99,22 @@
 <script>
     initVideo(
         document.getElementById('video-1'),
-        'http://localhost:9191/master?url=http%3A%2F%2Flocalhost%3A3102%2Fstreams%2Fsosed%2Fmaster.m3u8'
+        'http://192.168.0.102:9191/master?url=http%3A%2F%2F192.168.0.102%3A3102%2Fstreams%2Fsosed%2Fmaster.m3u8'
     );
 
     initVideo(
         document.getElementById('video-2'),
-        'http://localhost:9191/live?url=http%3A%2F%2Flocalhost%3A3102%2Fstreams%2Fstairs%2Fmaster.m3u8'
+        'http://192.168.0.102:9191/live?url=http%3A%2F%2F192.168.0.102%3A3102%2Fstreams%2Fstairs%2Fmaster.m3u8'
     );
 
     initVideo(
         document.getElementById('video-3'),
-        'http://localhost:9191/master?url=http%3A%2F%2Flocalhost%3A3102%2Fstreams%2Fdog%2Fmaster.m3u8'
+        'http://192.168.0.102:9191/master?url=http%3A%2F%2F192.168.0.102%3A3102%2Fstreams%2Fdog%2Fmaster.m3u8'
     );
 
     initVideo(
         document.getElementById('video-4'),
-        'http://localhost:9191/live?url=http%3A%2F%2Flocalhost%3A3102%2Fstreams%2Fstreet%2Fmaster.m3u8'
+        'http://192.168.0.102:9191/live?url=http%3A%2F%2F192.168.0.102%3A3102%2Fstreams%2Fstreet%2Fmaster.m3u8'
     );
 
     videoClickHandler(document.getElementById('video-1'), document.getElementById('zoomCheck-1'));
@@ -123,14 +123,44 @@
     videoClickHandler(document.getElementById('video-4'), document.getElementById('zoomCheck-4'));
 
     clickAllCamerasButton(document.getElementById('closeButton'));
+
+    var AudioContext = window.AudioContext || window.webkitAudioContext;
+    var audioCtx = new AudioContext();            
+    const merger = audioCtx.createChannelMerger(4);
+    merger.connect(audioCtx.destination);
+
+    document.querySelectorAll('.video').forEach((videoSource) => {
+        const source = audioCtx.createMediaElementSource(videoSource);
+        source.connect(merger);
+    });
+
+    const analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 32;
+    merger.connect(analyser);
+
+    var streamData =  new Uint8Array(analyser.frequencyBinCount);
+    function getVolume() {
+        analyser.getByteFrequencyData(streamData);
+        let total = 0;
+        for (let i =0; i < streamData.length; i++) {
+            total += streamData[i];
+        }
+        return streamData.reduce((acc, val) => acc + val, 0) / 255 / streamData.length;
+    }
+    function update() {
+        const volume = getVolume().toFixed(2) * 1000 / 2;
+        console.log('VoLUME', volume);
+        const plot = document.getElementById('volume-plot');
+        plot.style.background = 'linear-gradient(90deg, lightblue ' + volume + '%, white ' + volume + '%)';
+    }
+    update();
     
     function volumeChange(elementId) {
+        console.log(elementId);
         const vid = document.getElementById(elementId);
-        vid.onvolumechange = function() {
-            const plot = document.getElementById('volume-plot');
-            const volume = vid.volume * 100;
-            plot.style.background = 'linear-gradient(90deg, lightblue ' + volume + '%, white ' + volume + '%)';
-        };
+        vid.addEventListener('volumechange', function(event) {
+            update();
+        })
     };
     volumeChange("video-1");
     volumeChange("video-2");
